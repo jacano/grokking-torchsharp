@@ -1,4 +1,4 @@
-// Grokking in a tiny transformer, the abstract flavour.
+// Grokking in a tiny transformer, on a framework.
 //
 //   dotnet run -c Release                       # train, log the CSV, write the figures
 //   dotnet run -c Release -- --save             # the same, and keep the model
@@ -9,9 +9,8 @@
 // pass and no derivative here: TorchSharp carries the autograd, the layers and the
 // optimizer, and this file only says WHAT the model is and HOW it is trained.
 //
-// Read the two side by side. The micro flavour shows what a transformer really
-// does. This one shows how little is left to write when a framework does the
-// arithmetic.
+// A framework carries the arithmetic: there is no node list, no backward pass and
+// no derivative written here. What is left is the model and the training loop.
 
 using TorchSharp;
 using TorchSharp.Modules;
@@ -32,7 +31,7 @@ internal static class Program
     private const int Block = 16;         // longest document the model accepts
     private const int Batch = 128;        // pairs read per training step
     private const double Lr = 0.01;       // learning rate
-    private const double Wd = 0.0012;     // weight decay, the same value as the micro flavour
+    private const double Wd = 0.0012;     // weight decay. Small on purpose: it is what picks the rule over the table.
     private const int EvalTrain = 512;    // training pairs used for the logged train loss
     private const int EvalBatch = 512;    // documents per evaluation chunk
     private const int Steps = 12000;      // training steps
@@ -43,6 +42,7 @@ internal static class Program
     private const string FigDir = "figures";
     private const string DataDir = "data";
     private const string SavePath = "model.pt"; // written by --save, not part of the repo
+    private const string ProbabilityCsv = "runs/probabilities.csv"; // the 53 answers for one sum
 
     private const int Plus = P;               // token id of '+'
     private const int Eq = P + 1;              // token id of '='
@@ -59,6 +59,8 @@ internal static class Program
         int seed = (int)Number(args, "seed", Seed);
         int evalEvery = (int)Number(args, "eval-every", EvalEvery);
         string infer = Value(args, "infer", "");
+        string explain = Value(args, "explain", "");
+        string note = Value(args, "note", "");
         bool save = Has(args, "save");
 
         torch.manual_seed(seed); // the framework brings its own random numbers
@@ -78,7 +80,7 @@ internal static class Program
         var model = new TinyGpt(Vocab, NEmbd, NHead, Block);
         // The framework brings its own default initialisation: N(0,1) for an
         // embedding, a uniform range for a linear layer. The article uses the one
-        // from microgpt, so that both flavours start from the same scale.
+        // from microgpt, so that the run starts from the scale the article measures.
         using (torch.no_grad())
             foreach ((string _, Parameter parameter) in model.named_parameters())
                 parameter.normal_(0, 0.08);
@@ -98,9 +100,23 @@ internal static class Program
             return;
         }
 
+        // ---- one sum, explained -------------------------------------------
+        if (explain.Length > 0)
+        {
+            if (!File.Exists(SavePath))
+            {
+                Console.WriteLine($"no {SavePath} yet: train with --save first");
+                return;
+            }
+            model.load(SavePath);
+            Explain(model, explain, p, note);
+            return;
+        }
+
         // ---- training ----------------------------------------------------
         var lossFn = new CrossEntropyLoss();
-        // The same optimiser the micro flavour writes by hand: Adam with the decay added// to the gradient. The other two betas are microgpt's.
+        // Adam with the decay added to the gradient, as microgpt does, and microgpt's
+        // two betas. AdamW is a different optimiser: see the README.
         using var optimiser = optim.Adam(model.parameters(), lr: lr, beta1: 0.85, beta2: 0.99, weight_decay: wd);
         Directory.CreateDirectory(Path.GetDirectoryName(CsvPath) ?? ".");
         using var csv = new StreamWriter(CsvPath);
@@ -232,26 +248,73 @@ internal static class Program
     /// <summary>Print the answer for "a+b" and the three most likely ones.</summary>
     private static void Ask(torch.nn.Module<Tensor, Tensor> model, string expression, long p)
     {
-        string[] parts = expression.Split('+');
-        if (parts.Length != 2 || !long.TryParse(parts[0].Trim(), out long a) || !long.TryParse(parts[1].Trim(), out long b))
-        {
-            Console.WriteLine($"expected a+b, got {expression}");
-            return;
-        }
-        a = ((a % p) + p) % p;
-        b = ((b % p) + p) % p;
-        using var scope = torch.NewDisposeScope();
-        Tensor prompt = torch.tensor(new long[] { Bos, a, Plus, b, Eq }).reshape(1, 5);
-        Tensor logits = model.forward(prompt).squeeze(0).narrow(0, AnswerPos, 1).squeeze(0); // [vocab]
-        Tensor probs = logits.narrow(0, 0, (int)p).softmax(0);                  // the p number tokens
-        (double value, long index)[] ranked = probs.data<float>()
-            .Select((value, index) => ((double)value, (long)index))
-            .OrderByDescending(x => x.Item1)
+        if (!Parse(expression, p, out long a, out long b)) return;
+        double[] probs = Distribution(model, a, b, p);
+        (double value, long index)[] ranked = probs
+            .Select((value, index) => (value, (long)index))
+            .OrderByDescending(x => x.value)
             .Take(3)
             .ToArray();
         string best = ranked[0].index == (a + b) % p ? "ok" : "wrong";
         string top = string.Join(", ", ranked.Select(x => $"{x.index} ({x.value * 100:F0}%)"));
         Console.WriteLine($"inference {a}+{b} = {ranked[0].index}  [{best}]  top: {top}");
+    }
+
+    /// <summary>
+    /// Write every one of the 53 answers the model is considering, and draw them.
+    ///
+    /// A model does not answer, it spreads a probability over the options. The
+    /// figure is that spread, and the number in the article is the height of the
+    /// tallest bar.
+    /// </summary>
+    private static void Explain(torch.nn.Module<Tensor, Tensor> model, string expression, long p, string note)
+    {
+        if (!Parse(expression, p, out long a, out long b)) return;
+        double[] probs = Distribution(model, a, b, p);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(ProbabilityCsv) ?? ".");
+        using (StreamWriter writer = new(ProbabilityCsv))
+        {
+            writer.NewLine = "\n";
+            writer.WriteLine("token,probability");
+            for (int token = 0; token < probs.Length; token++)
+                writer.WriteLine($"{token},{probs[token]:F6}");
+        }
+
+        int answer = (int)((a + b) % p);
+        Plot.WriteDistribution(
+            ProbabilityCsv,
+            Path.Combine("figures", "grokking-probabilities.svg"),
+            $"The chance the model gives to each answer, for {a} + {b}" + (note.Length > 0 ? $" — {note}" : ""),
+            answer);
+        Console.WriteLine($"wrote {ProbabilityCsv} and figures/grokking-probabilities.svg");
+        Console.WriteLine($"the answer is {answer}, and the model gives it {probs[answer] * 100:F1}%");
+    }
+
+    /// <summary>One probability per answer token, the way the model spreads them.</summary>
+    private static double[] Distribution(torch.nn.Module<Tensor, Tensor> model, long a, long b, long p)
+    {
+        using var scope = torch.NewDisposeScope();
+        Tensor prompt = torch.tensor(new long[] { Bos, a, Plus, b, Eq }).reshape(1, 5);
+        Tensor logits = model.forward(prompt).squeeze(0).narrow(0, AnswerPos, 1).squeeze(0); // [vocab]
+        Tensor probs = logits.narrow(0, 0, (int)p).softmax(0); // the p number tokens
+        float[] values = probs.data<float>().ToArray();
+        return [.. values.Select(value => (double)value)];
+    }
+
+    private static bool Parse(string expression, long p, out long a, out long b)
+    {
+        string[] parts = expression.Split('+');
+        if (parts.Length != 2 || !long.TryParse(parts[0].Trim(), out long first) || !long.TryParse(parts[1].Trim(), out long second))
+        {
+            Console.WriteLine($"expected a+b, got {expression}");
+            a = 0;
+            b = 0;
+            return false;
+        }
+        a = ((first % p) + p) % p;
+        b = ((second % p) + p) % p;
+        return true;
     }
 
     private static string Arg(string[] args, string name)

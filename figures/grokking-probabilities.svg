@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" font-family="ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial,sans-serif">
+<text x="78" y="26" font-size="17" font-weight="600" fill="#64748b">The chance the model gives to each answer, for 12 + 35 — after 12,000 steps</text>
+<line x1="78.0" y1="398.0" x2="876.0" y2="398.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="402.5" font-size="13" fill="#64748b" text-anchor="end">0%</text>
+<line x1="78.0" y1="310.0" x2="876.0" y2="310.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="314.5" font-size="13" fill="#64748b" text-anchor="end">25%</text>
+<line x1="78.0" y1="222.0" x2="876.0" y2="222.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="226.5" font-size="13" fill="#64748b" text-anchor="end">50%</text>
+<line x1="78.0" y1="134.0" x2="876.0" y2="134.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="138.5" font-size="13" fill="#64748b" text-anchor="end">75%</text>
+<line x1="78.0" y1="46.0" x2="876.0" y2="46.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="50.5" font-size="13" fill="#64748b" text-anchor="end">100%</text>
+<rect x="79.0" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="94.1" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="109.1" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="124.2" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="139.2" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="154.3" y="394.0" width="13.1" height="4.0" fill="#cbd5e1"/>
+<rect x="169.3" y="381.7" width="13.1" height="16.3" fill="#cbd5e1"/>
+<rect x="184.4" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="199.5" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="214.5" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="229.6" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="244.6" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="259.7" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="274.7" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="289.8" y="397.9" width="13.1" height="0.1" fill="#cbd5e1"/>
+<rect x="304.8" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="319.9" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="335.0" y="386.9" width="13.1" height="11.1" fill="#cbd5e1"/>
+<rect x="350.0" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="365.1" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="380.1" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="395.2" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="410.2" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="425.3" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="440.4" y="396.8" width="13.1" height="1.2" fill="#cbd5e1"/>
+<rect x="455.4" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="470.5" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="485.5" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="500.6" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="515.6" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="530.7" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="545.8" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="560.8" y="397.9" width="13.1" height="0.1" fill="#cbd5e1"/>
+<rect x="575.9" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="590.9" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="606.0" y="396.3" width="13.1" height="1.7" fill="#cbd5e1"/>
+<rect x="621.0" y="396.8" width="13.1" height="1.2" fill="#cbd5e1"/>
+<rect x="636.1" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="651.2" y="397.8" width="13.1" height="0.2" fill="#cbd5e1"/>
+<rect x="666.2" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="681.3" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="696.3" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="711.4" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="726.4" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="741.5" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="756.5" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="771.6" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="786.7" y="82.1" width="13.1" height="315.9" fill="#2563eb"/>
+<rect x="801.7" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="816.8" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="831.8" y="397.9" width="13.1" height="0.1" fill="#cbd5e1"/>
+<rect x="846.9" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<rect x="861.9" y="398.0" width="13.1" height="0.0" fill="#cbd5e1"/>
+<text x="793.2" y="74.1" font-size="13" font-weight="600" fill="#0f172a" text-anchor="middle">90%</text>
+<line x1="78.0" y1="398.0" x2="876.0" y2="398.0" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="85.5" y="418.0" font-size="13" fill="#64748b" text-anchor="middle">0</text>
+<text x="236.1" y="418.0" font-size="13" fill="#64748b" text-anchor="middle">10</text>
+<text x="386.7" y="418.0" font-size="13" fill="#64748b" text-anchor="middle">20</text>
+<text x="537.2" y="418.0" font-size="13" fill="#64748b" text-anchor="middle">30</text>
+<text x="687.8" y="418.0" font-size="13" fill="#64748b" text-anchor="middle">40</text>
+<text x="838.4" y="418.0" font-size="13" fill="#64748b" text-anchor="middle">50</text>
+<text x="477.0" y="448.0" font-size="13" fill="#64748b" text-anchor="middle">the answer the model is considering</text>
+<rect x="726.0" y="51.0" width="12" height="12" fill="#2563eb"/>
+<text x="744.0" y="60.0" font-size="13" fill="#64748b">the right answer, 47</text>
+</svg>

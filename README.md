@@ -140,6 +140,7 @@ make run
 | `make control` | the same run with the decay at zero, which never learns the rule |
 | `make save` | train and keep the model in `model.pt` |
 | `make infer PAIR=12+35` | ask the saved model |
+| `make explain PAIR=12+35` | draw every answer it considered for one sum |
 | `make validate` | compile and check the style: what you run before a push |
 | `make publish MESSAGE="what changed"` | validate, commit and push |
 | `make clean` | remove the build output |
@@ -184,6 +185,24 @@ inference 0+13 = 13  [ok]  top: 13 (96%), 1 (2%), 43 (0%)
 One of the four is wrong, and that is the honest number: the model answers 97.3% of
 the unseen pairs, so roughly one pair in forty fails. `50 + 50` is one of the 1,966
 pairs the model never saw.
+
+## What the model is thinking
+
+A model does not answer a question, it spreads a chance over the options. `make explain
+PAIR=12+35` writes the 53 probabilities the saved model gives to one sum
+(`runs/probabilities.csv`) and draws them (`figures/grokking-probabilities.svg`).
+
+| the saved model | chance it gives to the right answer, 47 |
+| --- | ---: |
+| after 1,000 steps, when it has memorized | 0.3% |
+| after 12,000 steps, when it has the rule | **89.8%** |
+
+The first model is not undecided. It is sure of another answer, at 40%, which is why the
+unseen accuracy sits **below** the 1.9% of guessing in the control below: a model that
+memorized is confidently wrong about everything it did not store.
+
+`make explain NOTE="after 1,000 steps"` puts your own words in the title, which is how
+the two rows above were drawn.
 
 ## What the framework does not do
 

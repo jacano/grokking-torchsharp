@@ -1,6 +1,8 @@
 bin/
 obj/
-# model.txt is written by --save. It is not part of the repository.
+# model.txt
+model.pt is written by --save. It is not part of the repository.
 model.txt
+model.pt
 smoke*
 *.log

@@ -128,6 +128,74 @@ public static class Plot
         File.WriteAllText(Path.Combine(directory, "grokking-norm.svg"), size);
     }
 
+    /// <summary>
+    /// One bar per answer the model could give, from the CSV that --explain writes.
+    ///
+    /// A model does not answer a question, it spreads a chance over the options.
+    /// The bar for the correct answer is the number in the article, and the whole
+    /// picture is what changes between the memorized model and the model that
+    /// found the rule. The vertical axis is fixed at 0 to 1 so that two of these
+    /// figures can be read against each other.
+    /// </summary>
+    public static void WriteDistribution(string csvPath, string outPath, string title, int answer)
+    {
+        List<(int Token, double Probability)> bars = [];
+        foreach (string line in File.ReadLines(csvPath).Skip(1))
+        {
+            string[] parts = line.Split(',');
+            if (parts.Length >= 2 && int.TryParse(parts[0], out int token))
+                bars.Add((token, Num(parts[1])));
+        }
+        if (bars.Count == 0) return;
+
+        const double width = 900.0, height = 460.0;
+        const double marginLeft = 78.0, marginTop = 46.0, marginRight = 24.0, marginBottom = 62.0;
+        double plotWidth = width - marginLeft - marginRight;
+        double plotHeight = height - marginTop - marginBottom;
+        double barWidth = plotWidth / bars.Count;
+        double baseline = marginTop + plotHeight;
+        double Sy(double y) => marginTop + plotHeight * (1.0 - Math.Clamp(y, 0.0, 1.0));
+
+        StringBuilder svg = new();
+        svg.Append($"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{F(width, 0)}\" height=\"{F(height, 0)}\" viewBox=\"0 0 {F(width, 0)} {F(height, 0)}\" font-family=\"ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial,sans-serif\">\n");
+        svg.Append($"<text x=\"{F(marginLeft, 0)}\" y=\"26\" font-size=\"17\" font-weight=\"600\" fill=\"{TextColor}\">{title}</text>\n");
+
+        foreach (double tick in new[] { 0.0, 0.25, 0.5, 0.75, 1.0 })
+        {
+            double y = Sy(tick);
+            svg.Append($"<line x1=\"{F(marginLeft, 1)}\" y1=\"{F(y, 1)}\" x2=\"{F(marginLeft + plotWidth, 1)}\" y2=\"{F(y, 1)}\" stroke=\"{GridColor}\" stroke-width=\"1\"/>\n");
+            svg.Append($"<text x=\"{F(marginLeft - 10.0, 1)}\" y=\"{F(y + 4.5, 1)}\" font-size=\"13\" fill=\"{TextColor}\" text-anchor=\"end\">{F(tick * 100.0, 0)}%</text>\n");
+        }
+
+        (int Token, double Probability) tallest = bars.MaxBy(bar => bar.Probability);
+        foreach ((int token, double probability) in bars)
+        {
+            double x = marginLeft + token * barWidth;
+            double y = Sy(probability);
+            string colour = token == answer ? "#2563eb" : "#cbd5e1";
+            svg.Append($"<rect x=\"{F(x + 1.0, 1)}\" y=\"{F(y, 1)}\" width=\"{F(barWidth - 2.0, 1)}\" height=\"{F(baseline - y, 1)}\" fill=\"{colour}\"/>\n");
+        }
+
+        // The tallest bar gets its number, because that is the answer the model gives.
+        double tallestX = marginLeft + tallest.Token * barWidth + barWidth / 2.0;
+        svg.Append($"<text x=\"{F(tallestX, 1)}\" y=\"{F(Sy(tallest.Probability) - 8.0, 1)}\" font-size=\"13\" font-weight=\"600\" fill=\"#0f172a\" text-anchor=\"middle\">{F(tallest.Probability * 100.0, 0)}%</text>\n");
+
+        svg.Append($"<line x1=\"{F(marginLeft, 1)}\" y1=\"{F(baseline, 1)}\" x2=\"{F(marginLeft + plotWidth, 1)}\" y2=\"{F(baseline, 1)}\" stroke=\"{AxisColor}\" stroke-width=\"1.5\"/>\n");
+        for (int token = 0; token < bars.Count; token += 10)
+        {
+            double x = marginLeft + token * barWidth + barWidth / 2.0;
+            svg.Append($"<text x=\"{F(x, 1)}\" y=\"{F(baseline + 20.0, 1)}\" font-size=\"13\" fill=\"{TextColor}\" text-anchor=\"middle\">{token}</text>\n");
+        }
+        svg.Append($"<text x=\"{F(marginLeft + plotWidth / 2.0, 1)}\" y=\"{F(height - 12.0, 1)}\" font-size=\"13\" fill=\"{TextColor}\" text-anchor=\"middle\">the answer the model is considering</text>\n");
+
+        double legendY = marginTop + 14.0;
+        svg.Append($"<rect x=\"{F(marginLeft + plotWidth - 150.0, 1)}\" y=\"{F(legendY - 9.0, 1)}\" width=\"12\" height=\"12\" fill=\"#2563eb\"/>\n");
+        svg.Append($"<text x=\"{F(marginLeft + plotWidth - 132.0, 1)}\" y=\"{F(legendY, 1)}\" font-size=\"13\" fill=\"{TextColor}\">the right answer, {answer}</text>\n");
+
+        svg.Append("</svg>\n");
+        File.WriteAllText(outPath, svg.ToString());
+    }
+
     private static string Chart(
         string title,
         string xLabel,

@@ -11,11 +11,12 @@
 
 DOTNET ?= dotnet
 PAIR   ?= 12+35
+NOTE   ?= with the saved model
 ARGS   ?=
 
 .DEFAULT_GOAL := validate
 
-.PHONY: help build lint format validate run control save infer clean publish status
+.PHONY: help build lint format validate run control save infer explain clean publish status
 
 help:
 	@echo make build      compile in Release
@@ -24,9 +25,9 @@ help:
 	@echo make control    the run without weight decay: the rule never arrives
 	@echo make save       train and keep the model in model.pt
 	@echo make infer      ask the saved model, PAIR=12+35 by default
+	@echo make explain    draw every answer it considered for one sum
 	@echo make clean      remove the build output
 	@echo make publish MESSAGE=what changed   validate, commit and push
-	@echo
 	@echo Extra flags go through ARGS, as in: make run ARGS=--p 13 --steps 3000
 
 build:
@@ -60,6 +61,11 @@ save: build
 # each and there is nothing to keep in step by hand.
 infer:
 	$(DOTNET) run -c Release -- --infer $(PAIR)
+
+# A model does not answer, it spreads a chance over the options. This writes the
+# 53 probabilities for one sum to runs/probabilities.csv and draws them.
+explain:
+	$(DOTNET) run -c Release -- --explain $(PAIR) --note "$(NOTE)"
 
 clean:
 	$(DOTNET) clean
