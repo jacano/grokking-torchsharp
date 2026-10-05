@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" font-family="ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial,sans-serif">
+<text x="78" y="26" font-size="17" font-weight="600" fill="#64748b">The train loss reaches zero while the test loss stays flat</text>
+<line x1="78.0" y1="165.5" x2="750.0" y2="165.5" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="170.0" font-size="13" fill="#64748b" text-anchor="end">0.01</text>
+<line x1="78.0" y1="154.6" x2="750.0" y2="154.6" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="159.1" font-size="13" fill="#64748b" text-anchor="end">0.10</text>
+<line x1="78.0" y1="46.0" x2="750.0" y2="46.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="50.5" font-size="13" fill="#64748b" text-anchor="end">1</text>
+<line x1="78.0" y1="46.0" x2="750.0" y2="46.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="50.5" font-size="13" fill="#64748b" text-anchor="end">10</text>
+<line x1="78.0" y1="46.0" x2="78.0" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">0</text>
+<line x1="212.4" y1="46.0" x2="212.4" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="212.4" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">2400</text>
+<line x1="346.8" y1="46.0" x2="346.8" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="346.8" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">4800</text>
+<line x1="481.2" y1="46.0" x2="481.2" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="481.2" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">7200</text>
+<line x1="615.6" y1="46.0" x2="615.6" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="615.6" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">9600</text>
+<line x1="750.0" y1="46.0" x2="750.0" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="750.0" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">12000</text>
+<line x1="78.0" y1="408.0" x2="750.0" y2="408.0" stroke="#94a3b8" stroke-width="1.5"/>
+<line x1="78.0" y1="46.0" x2="78.0" y2="408.0" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="414.0" y="448.0" font-size="13" fill="#64748b" text-anchor="middle">training step</text>
+<text x="18" y="227.0" font-size="13" fill="#64748b" transform="rotate(-90 18 227.0)" text-anchor="middle">cross-entropy loss (log scale)</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" points="78.0,94.8 92.0,138.9 106.0,145.0 120.0,144.7 134.0,147.2 148.0,146.0 162.0,141.0 176.0,147.0 190.0,145.6 204.0,147.4 218.0,146.5 232.0,145.3 246.0,147.0 260.0,147.9 274.0,145.4 288.0,148.2 302.0,147.6 316.0,148.4 330.0,142.0 344.0,148.2 358.0,148.1 372.0,148.2 386.0,148.0 400.0,147.3 414.0,147.1 428.0,148.5 442.0,148.6 456.0,148.8 470.0,148.3 484.0,148.1 498.0,147.3 512.0,147.0 526.0,148.6 540.0,147.6 554.0,148.7 568.0,147.6 582.0,148.5 596.0,148.1 610.0,148.7 624.0,144.7 638.0,147.8 652.0,146.0 666.0,147.5 680.0,147.8 694.0,148.8 708.0,146.3 722.0,148.1 736.0,148.6 750.0,148.9"/>
+<line x1="766.0" y1="60.0" x2="790.0" y2="60.0" stroke="#2563eb" stroke-width="2.6"/>
+<text x="796.0" y="64.5" font-size="13" fill="#64748b">train</text>
+<polyline fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linejoin="round" points="78.0,94.7 92.0,101.0 106.0,97.5 120.0,98.3 134.0,98.6 148.0,99.5 162.0,100.6 176.0,100.8 190.0,102.8 204.0,105.6 218.0,104.6 232.0,107.7 246.0,112.0 260.0,114.4 274.0,116.4 288.0,126.9 302.0,128.1 316.0,128.9 330.0,126.7 344.0,129.5 358.0,128.9 372.0,129.4 386.0,129.5 400.0,130.2 414.0,129.9 428.0,129.4 442.0,129.6 456.0,129.9 470.0,129.4 484.0,129.1 498.0,129.1 512.0,128.2 526.0,129.2 540.0,129.3 554.0,129.2 568.0,128.5 582.0,129.5 596.0,129.4 610.0,129.0 624.0,127.2 638.0,129.7 652.0,129.0 666.0,130.1 680.0,129.1 694.0,129.4 708.0,128.2 722.0,129.3 736.0,129.4 750.0,129.7"/>
+<line x1="766.0" y1="80.0" x2="790.0" y2="80.0" stroke="#dc2626" stroke-width="2.6"/>
+<text x="796.0" y="84.5" font-size="13" fill="#64748b">unseen</text>
+</svg>

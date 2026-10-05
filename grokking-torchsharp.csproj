@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>grokking-torchsharp</AssemblyName>
+    <RootNamespace>Grokking</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The framework: the autograd, the layers and the optimizer. -->
+    <PackageReference Include="TorchSharp" Version="0.107.0" />
+    <!-- The native libtorch build for the CPU, as a package. -->
+    <PackageReference Include="libtorch-cpu" Version="2.10.0" />
+  </ItemGroup>
+
+</Project>
