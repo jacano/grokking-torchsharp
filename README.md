@@ -1,28 +1,26 @@
-# Grokking in a tiny transformer — the abstract flavour
+# Grokking in a tiny transformer
 
 This repository is the companion code for the article
 **[Attention and grokking: a tiny transformer that learns the rule](https://jacano.github.io/blog/attention-and-grokking-tiny-transformer/)**.
 
-It trains the **same model on the same task** as
-[grokking-csharp](https://github.com/jacano/grokking-csharp), and it shows the same
-jump. The difference is what is *not* here.
+It trains a small transformer on one arithmetic task and shows the moment when the
+model stops memorizing and starts generalizing. The experiment is 329 lines in total:
+the task, the model, the training loop and the figures. A framework carries the
+automatic differentiation, so there is no derivative to read here — the model is 55
+lines and the training loop is 12, and both are in `src/Program.cs`.
 
-The micro flavour writes the engine: a list of nodes, a backward pass, the
-derivatives of a matrix product, an optimizer by hand. It is 1,160 lines and it has
-no dependencies. This flavour hands all of that to a framework and keeps only what
-the reader actually thinks about: **what the model is and how it is trained**. The
-model is 55 lines, and the training loop is 12.
-
-| | micro flavour | abstract flavour |
+| | this repository | what a framework replaces |
 | --- | ---: | ---: |
-| model and training | 1,160 lines | **329 lines** |
-| dependencies | none | TorchSharp + libtorch |
-| backward pass | written by hand | `loss.backward()` |
-| derivatives | written by hand | none |
-| causal mask | the key cache grows | one argument |
-| numbers | float64, own generator | float32, the framework's generator |
-| a full run | about 10 minutes | **26 seconds** |
-| the cliff | yes | yes |
+| model and training | **329 lines** | a list of nodes and a backward pass |
+| dependencies | TorchSharp + libtorch | none |
+| backward pass | `loss.backward()` | written by hand |
+| derivatives | none | written by hand |
+| causal mask | one argument | the key cache grows |
+| a full run | **26 seconds** | the same run, ten times slower |
+
+What the framework does not remove is the thinking. Two decisions of this run are
+worth reading before you change anything: the initialisation, and which of `Adam`
+and `AdamW` you are actually calling. Both are in the last section.
 
 ## The library
 
@@ -101,9 +99,8 @@ end the model answers **1,912 of the 1,966 unseen pairs**.
 
 The figure carries two axes, one per curve. The blue line is the size of the
 parameters on the left axis. The red line is the accuracy on unseen pairs on the
-right axis. The size tells the same story as in the micro flavour: it grows while
-the model stores 843 answers, and it falls while the table becomes the expensive
-option.
+right axis. The size tells the story: it grows while the model stores 843 answers, and it falls
+while the table becomes the expensive option.
 
 ## The control
 
@@ -158,8 +155,7 @@ make run ARGS="--lr 0.0025"                      # a slower optimiser
 `make control` writes over the artifacts of `make run`, so it puts the committed ones
 back when it finishes. The log is the result, and the table of the two runs is above.
 
-The whole run takes about half a minute. It writes the same three things as the
-micro flavour:
+The whole run takes about half a minute. It writes three things:
 
 | Where | What |
 | --- | --- |
@@ -198,16 +194,11 @@ get right:
 
 - **The initialisation.** A framework starts an embedding at `N(0, 1)` and a linear
   layer in a uniform range. The article uses microgpt's `N(0, 0.08)`, so this file
-  sets it in four lines. Measured by the size of the parameters, the two flavours
-  then start at 19.1 and 19.2.
+  sets it in four lines. Measured by the size of the parameters, the run then starts at 19.1 instead of 69.6.
 - **The decay is not the same decay.** `AdamW` subtracts the decay from the weight
   outside the update, and `Adam` adds it to the gradient, as microgpt does. With
   `AdamW` this run never jumped, at any decay from 0.002 to 0.5; the parameter norm
-  settled at 40 to 50 and the model stayed on the memorizing answer. With `Adam` and
-  the decay inside the gradient, **the same `wd = 0.0012` as the micro flavour
-  works**, and the norm settles at 16. Two names for the same word, two different
+  settled at 40 to 50 and the model stayed on the memorizing answer. With `Adam` and the decay inside the gradient, **`wd = 0.0012` works**, and the norm settles at 16. Two names for the same word, two different
   runs.
 
-The framework also brings its own random numbers, so this model does not start from
-the weights the micro flavour starts from, and it does not see the same split of the
-pairs. Both reach the rule. The micro flavour is the one that shows how.
+The framework also brings its own random numbers, so the seed decides the initial weights and the split of the pairs. Change the seed and you get a different run of the same experiment: the jump moves, and the rule arrives just the same.
