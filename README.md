@@ -105,6 +105,25 @@ right axis. The size tells the same story as in the micro flavour: it grows whil
 the model stores 843 answers, and it falls while the table becomes the expensive
 option.
 
+## The control
+
+Set the decay to zero and the jump never arrives. The same program, with `--wd 0`:
+
+| step | decay | train acc | unseen acc | size |
+| ---: | :--- | ---: | ---: | ---: |
+| 12,000 | with | 100% | **97.3%** | 16.0 |
+| 12,000 | without | 100% | **0.2%** | 157.1 |
+| 60,000 | without | 100% | **0.5%** | 348.2 |
+
+```bash
+dotnet run -c Release -- --wd 0
+```
+
+The model memorizes every training pair either way. Without the decay the unseen
+accuracy is **below the 1.9% of guessing**, and it stays there: five times the
+steps, 60,000 of them, move it from 0.2% to 0.5%. The size of the parameters climbs
+to 348, more than twenty times the size of the model that learned the rule.
+
 ## Reproduce it
 
 You need the .NET SDK 10 or newer. The first build downloads libtorch, which is a
