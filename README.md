@@ -132,8 +132,31 @@ few hundred megabytes.
 ```bash
 git clone https://github.com/jacano/grokking-torchsharp
 cd grokking-torchsharp
-dotnet run -c Release
+make run
 ```
+
+`make` on its own compiles and checks the formatting. `make help` prints the list:
+
+| command | what it does |
+| --- | --- |
+| `make run` | the full run: 12,000 steps, about half a minute |
+| `make control` | the same run with the decay at zero, which never learns the rule |
+| `make save` | train and keep the model in `model.pt` |
+| `make infer PAIR=12+35` | ask the saved model |
+| `make validate` | compile and check the style: what you run before a push |
+| `make publish MESSAGE="what changed"` | validate, commit and push |
+| `make clean` | remove the build output |
+
+Every flag goes through `ARGS`:
+
+```bash
+make run ARGS="--p 13 --steps 3000"              # a smaller modulus learns faster
+make run ARGS="--steps 40000 --eval-every 100"   # longer run, finer log
+make run ARGS="--lr 0.0025"                      # a slower optimiser
+```
+
+`make control` writes over the artifacts of `make run`, so it puts the committed ones
+back when it finishes. The log is the result, and the table of the two runs is above.
 
 The whole run takes about half a minute. It writes the same three things as the
 micro flavour:
@@ -144,28 +167,15 @@ micro flavour:
 | `runs/grokking.csv` | the logged numbers of every step |
 | `figures/` | the three figures of this article |
 
-Three knobs, and `--eval-every`:
-
-```bash
-# control: no weight decay, so nothing pulls the model off the memorizing solution
-dotnet run -c Release -- --wd 0
-
-# a smaller modulus learns faster and shows the same shape
-dotnet run -c Release -- --p 13 --steps 3000
-
-# longer run, finer log
-dotnet run -c Release -- --steps 40000 --eval-every 100
-```
-
 ## Inference
 
-`model.pt` is **not part of the repository**. The `--save` flag writes it at the end
-of a run and the model reads it back. This is one line in each direction, because a
-framework keeps the whole state dictionary for you:
+`model.pt` is **not part of the repository**. `make save` writes it at the end of a run
+and `make infer` reads it back. This is one line in each direction, because a framework
+keeps the whole state dictionary for you:
 
 ```bash
-dotnet run -c Release -- --save
-dotnet run -c Release -- --infer 12+35
+make save                      # train, then write model.pt
+make infer PAIR=12+35
 ```
 
 ```

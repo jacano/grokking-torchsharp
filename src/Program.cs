@@ -104,6 +104,7 @@ internal static class Program
         using var optimiser = optim.Adam(model.parameters(), lr: lr, beta1: 0.85, beta2: 0.99, weight_decay: wd);
         Directory.CreateDirectory(Path.GetDirectoryName(CsvPath) ?? ".");
         using var csv = new StreamWriter(CsvPath);
+        csv.NewLine = "\n"; // LF everywhere, so a run never shows the CSV as modified
         csv.WriteLine("step,train_loss,train_acc,test_loss,test_acc,param_norm");
         csv.Flush();
 
@@ -134,8 +135,9 @@ internal static class Program
 
             optimiser.zero_grad();
             Tensor logits = model.forward(inputs);                                  // [B, 5, vocab]
-            Tensor loss = lossFn.forward(logits.reshape(-1, Vocab), targets.reshape(-1));            loss.backward();          // the whole backward pass: one line
-            optimiser.step();         // AdamW, decay included
+            Tensor loss = lossFn.forward(logits.reshape(-1, Vocab), targets.reshape(-1));
+            loss.backward();          // the whole backward pass: one line
+            optimiser.step();         // Adam and the decay, one line
 
             if ((step + 1) % evalEvery == 0 || step == steps - 1) LogRow(step + 1);
         }
@@ -190,8 +192,16 @@ internal static class Program
     private static void WriteRawData(List<(long A, long B)> train, List<(long A, long B)> test, long p)
     {
         Directory.CreateDirectory(DataDir);
-        File.WriteAllLines(Path.Combine(DataDir, "train.txt"), train.Select(x => $"{x.A} + {x.B} = {(x.A + x.B) % p}"));
-        File.WriteAllLines(Path.Combine(DataDir, "test.txt"), test.Select(x => $"{x.A} + {x.B} = {(x.A + x.B) % p}"));
+        // A newline per line, always: the same bytes on Windows, Linux and macOS,
+        // so a run never shows the files as modified.
+        WriteSplit(Path.Combine(DataDir, "train.txt"), train, p);
+        WriteSplit(Path.Combine(DataDir, "test.txt"), test, p);
+    }
+
+    private static void WriteSplit(string path, List<(long A, long B)> pairs, long p)
+    {
+        string text = string.Join('\n', pairs.Select(x => $"{x.A} + {x.B} = {(x.A + x.B) % p}"));
+        File.WriteAllText(path, text + "\n");
     }
 
     /// <summary>Mean loss over the five positions, and exact match on the answer.</summary>
