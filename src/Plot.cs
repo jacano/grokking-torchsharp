@@ -1,6 +1,6 @@
-// Reads the run CSV and writes the figures as SVG. The blog needs a chart that
-// comes from the data, and a generator that lives next to the engine cannot
-// drift from it.
+// Reads the run CSV and writes the figures as SVG. A chart has to come from the
+// data behind it, so the generator lives next to the training run that writes the CSV,
+// and the two cannot drift apart.
 
 using System.Globalization;
 using System.Text;

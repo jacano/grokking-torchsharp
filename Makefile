@@ -3,8 +3,7 @@
 #     make help
 #
 # The whole experiment is src/Program.cs: the task, the model, the training loop
-# and the command line. TorchSharp carries the autograd, so there are no
-# derivatives to read here. `make` alone compiles and checks the style.
+# and the command line. `make` alone compiles and checks the style.
 #
 # Needs the .NET SDK 10 or newer. The first build downloads libtorch, which is a
 # few hundred megabytes.
@@ -57,8 +56,8 @@ control: build
 save: build
 	$(DOTNET) run -c Release --no-build -- --save
 
-# A framework keeps the whole state dictionary, so saving and loading are one line
-# each and there is nothing to keep in step by hand.
+# TorchSharp keeps the whole state dictionary, so saving the model and loading it
+# again are one line each.
 infer:
 	$(DOTNET) run -c Release -- --infer $(PAIR)
 

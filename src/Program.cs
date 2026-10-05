@@ -1,16 +1,16 @@
-// Grokking in a tiny transformer, on a framework.
+// Grokking in a tiny transformer.
 //
 //   dotnet run -c Release                       # train, log the CSV, write the figures
 //   dotnet run -c Release -- --save             # the same, and keep the model
 //   dotnet run -c Release -- --infer 12+35      # ask the saved model
+//   dotnet run -c Release -- --explain 12+35    # draw the 53 answers it considered
 //
-// This is the same experiment as https://github.com/jacano/grokking-csharp, with
-// the whole engine replaced by a framework. There is no node list, no backward
-// pass and no derivative here: TorchSharp carries the autograd, the layers and the
-// optimizer, and this file only says WHAT the model is and HOW it is trained.
+// The task is modular addition, the model is a transformer of 56,640 parameters, and
+// the whole experiment is this file. TorchSharp carries the autograd, the layers and
+// the optimizer, so what is left here is WHAT the model is and HOW it is trained.
 //
-// A framework carries the arithmetic: there is no node list, no backward pass and
-// no derivative written here. What is left is the model and the training loop.
+// A full run takes about half a minute, and the article that goes with it is at
+// https://jacano.github.io/blog/grokking-from-memory-to-rule/
 
 using TorchSharp;
 using TorchSharp.Modules;

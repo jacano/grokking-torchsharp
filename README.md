@@ -5,22 +5,16 @@ This repository is the companion code for the article
 
 It trains a small transformer on one arithmetic task and shows the moment when the
 model stops memorizing and starts generalizing. The experiment is 329 lines in total:
-the task, the model, the training loop and the figures. A framework carries the
-automatic differentiation, so there is no derivative to read here — the model is 55
-lines and the training loop is 12, and both are in `src/Program.cs`.
+the task, the model, the training loop and the figures. TorchSharp carries the
+automatic differentiation, so the model is 55 lines and the training loop is 12, and
+both are in `src/Program.cs`. A full run takes 26 seconds on one core.
 
-| | this repository | what a framework replaces |
-| --- | ---: | ---: |
-| model and training | **329 lines** | a list of nodes and a backward pass |
-| dependencies | TorchSharp + libtorch | none |
-| backward pass | `loss.backward()` | written by hand |
-| derivatives | none | written by hand |
-| causal mask | one argument | the key cache grows |
-| a full run | **26 seconds** | the same run, ten times slower |
-
-What the framework does not remove is the thinking. Two decisions of this run are
-worth reading before you change anything: the initialisation, and which of `Adam`
-and `AdamW` you are actually calling. Both are in the last section.
+| | |
+| --- | ---: |
+| model and training | **55 + 12 lines** |
+| dependencies | TorchSharp + libtorch |
+| a full run | **26 seconds** |
+| result | 97.3% of the unseen pairs |
 
 ## The library
 
