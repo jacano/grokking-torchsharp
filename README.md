@@ -9,7 +9,7 @@ the task, the model, the training loop and the figures. TorchSharp carries the
 automatic differentiation, so the model is 55 lines and the training loop is 12, and
 both are in `src/Program.cs`. A full run takes 26 seconds on one core.
 
-| | |
+| Property | Value |
 | --- | ---: |
 | model and training | **55 + 12 lines** |
 | dependencies | TorchSharp + libtorch |
@@ -126,7 +126,7 @@ cd grokking-torchsharp
 make run
 ```
 
-`make` on its own compiles and checks the formatting. `make help` prints the list:
+`make` on its own compiles and checks the formatting. On a machine without `make`, every target is one `dotnet` line: `dotnet run -c Release` for `make run`, `dotnet run -c Release -- --wd 0` for `make control`. `make help` prints the list:
 
 | command | what it does |
 | --- | --- |

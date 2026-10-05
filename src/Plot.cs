@@ -227,7 +227,12 @@ public static class Plot
         if (shadeUntil is { } until)
         {
             svg.Append($"<rect x=\"{F(Sx(0), 1)}\" y=\"{F(marginTop, 1)}\" width=\"{F(Sx(until) - Sx(0), 1)}\" height=\"{F(plotHeight, 1)}\" fill=\"#f1f5f9\" opacity=\"0.85\"/>\n");
-            svg.Append($"<text x=\"{F(Sx(until / 2.0) - 40.0, 1)}\" y=\"{F(marginTop + 18.0, 1)}\" font-size=\"12\" fill=\"{TextColor}\">memorization</text>\n");
+            // The label goes in the gap between the two highest gridlines, where neither
+            // curve passes. Placed near the top of the band it was struck out by the line
+            // for 100%, and in the middle of the band it landed next to the line for 50%.
+            double labelX = Sx(until / 2.0);
+            double labelY = (Sy(yTicks[^1]) + Sy(yTicks[^2])) / 2.0;
+            svg.Append($"<text x=\"{F(labelX, 1)}\" y=\"{F(labelY + 4.0, 1)}\" font-size=\"12\" fill=\"{TextColor}\" text-anchor=\"middle\">memorization</text>\n");
         }
 
         foreach (double tick in yTicks)
