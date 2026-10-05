@@ -1,7 +1,7 @@
 # Grokking in a tiny transformer
 
 This repository is the companion code for the article
-**[Attention and grokking: a tiny transformer that learns the rule](https://jacano.github.io/blog/attention-and-grokking-tiny-transformer/)**.
+**[Grokking: the jump from memory to rule](https://jacano.github.io/blog/grokking-from-memory-to-rule/)**.
 
 It trains a small transformer on one arithmetic task and shows the moment when the
 model stops memorizing and starts generalizing. The experiment is 329 lines in total:
