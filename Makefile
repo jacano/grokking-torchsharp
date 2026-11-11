@@ -2,10 +2,10 @@
 #
 #     make help
 #
-# The whole experiment is src/Program.cs: the task, the model, the training loop
+# The whole experiment is src/: the task, the model, the training loop, the figures
 # and the command line. `make` alone compiles and checks the style.
 #
-# Needs the .NET SDK 10 or newer. The first build downloads libtorch, which is a
+# Needs the .NET SDK 11 or newer. The first build downloads libtorch, which is a
 # few hundred megabytes.
 
 DOTNET ?= dotnet
@@ -20,7 +20,7 @@ ARGS   ?=
 help:
 	@echo make build      compile in Release
 	@echo make validate   build and check the formatting
-	@echo make run        the full run: 12,000 steps, about half a minute
+	@echo make run        the full run: 20,000 steps, about a minute and a half
 	@echo make control    the run without weight decay: the rule never arrives
 	@echo make save       train and keep the model in model.pt
 	@echo make infer      ask the saved model, PAIR=12+35 by default
@@ -46,9 +46,9 @@ run: build
 	$(DOTNET) run -c Release --no-build -- $(ARGS)
 
 # The same run with the decay set to zero. It memorizes the train set and never
-# learns the rule, and five times the steps do not change that. It writes over the
-# artifacts of `make run`, so the recipe puts the committed ones back when it
-# finishes: the log is the result, and the table of the two runs is in the README.
+# learns the rule. It writes over the artifacts of `make run`, so the recipe puts
+# the committed ones back when it finishes: the log is the result, and the table of
+# the two runs is in the README.
 control: build
 	$(DOTNET) run -c Release --no-build -- --wd 0 $(ARGS)
 	git checkout -- runs figures data

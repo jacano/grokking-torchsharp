@@ -211,12 +211,13 @@ get right:
 
 - **The initialisation.** A framework starts an embedding at `N(0, 1)` and a linear
   layer in a uniform range. The article uses microgpt's `N(0, 0.08)`, so this file
-  sets it in four lines. Measured by the size of the parameters, the run then starts at 18.9 instead of 69.6.
+  sets it in four lines. Measured by the size of the parameters, the run then starts at 18.9 instead of 61.3.
 - **The decay is not the same decay.** `AdamW` subtracts the decay from the weight
   outside the update, and `Adam` adds it to the gradient, as microgpt does. With
-  `AdamW` this run never jumped, at any decay from 0.002 to 0.5; the parameter norm
-  settled at 40 to 50 and the model stayed on the memorizing answer. With `Adam` and the decay inside the gradient, **`wd = 0.005` works**, and the norm settles at 9.3. Two names for the same word, two different
-  runs.
+  `AdamW` and `wd = 0.005` this run never jumps: it ends at 30.9% of the unseen
+  pairs with the parameter norm at 56, because the decay stays outside the gradient.
+  With `Adam` and the decay inside the gradient, **`wd = 0.005` works**, and the
+  norm settles at 9.3. Two names for the same word, two different runs.
 - **The schedule.** The run reaches 100% and then oscillates around it. The last
   2,000 steps take the learning rate to zero, so it ends on the solution instead of
   on a dip.
