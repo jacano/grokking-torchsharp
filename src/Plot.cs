@@ -62,70 +62,80 @@ public static class Plot
     private static string F(double value, int decimals) =>
         value.ToString("F" + decimals, CultureInfo.InvariantCulture);
 
-    public static void WriteFigures(string csvPath, string directory)
+    public static void WriteFigures(string csvPath, string directory) => WriteFigures(csvPath, directory, false);
+
+    /// <summary>
+    /// The three charts of the article. The Spanish version writes the same charts with
+    /// an "-es" suffix, because the article that uses them is in Spanish and a figure
+    /// with English labels inside it reads as a mistake.
+    /// </summary>
+    public static void WriteFigures(string csvPath, string directory, bool spanish)
     {
         List<Row> rows = ReadCsv(csvPath);
         if (rows.Count == 0) return;
         Directory.CreateDirectory(directory);
         double last = rows[^1].Step;
+        string suffix = spanish ? "-es" : "";
+        string xLabel = spanish ? "paso de entrenamiento" : "training step";
 
-        // 1. The cliff: accuracy on the training pairs and on the unseen pairs.
+        // 1. The cliff: accuracy on the training sums and on the unseen sums.
         string accuracy = Chart(
-            "Generalization happens after memorization",
-            "training step",
-            "exact-match accuracy",
+            spanish ? "Acierto en sumas de entrenamiento y en sumas no vistas" : "Accuracy on training and unseen sums",
+            xLabel,
+            spanish ? "acierto exacto" : "exact-match accuracy",
             last, -0.02, 1.05,
             [0.0, 0.25, 0.5, 0.75, 1.0],
             v => F(v * 100.0, 0) + "%",
             [
-                new Series { Label = "train pairs", Color = "#2563eb", Points = rows.Select(r => (r.Step, r.TrainAcc)).ToList() },
-                new Series { Label = "unseen pairs", Color = "#dc2626", Points = rows.Select(r => (r.Step, r.TestAcc)).ToList() },
+                new Series { Label = spanish ? "entrenamiento" : "training sums", Color = "#2563eb", Points = rows.Select(r => (r.Step, r.TrainAcc)).ToList() },
+                new Series { Label = spanish ? "no vistas" : "unseen sums", Color = "#dc2626", Points = rows.Select(r => (r.Step, r.TestAcc)).ToList() },
             ],
             null,
-            rows.FirstOrDefault(r => r.TestAcc >= 0.5)?.Step ?? last * 0.15);
-        File.WriteAllText(Path.Combine(directory, "grokking-cliff.svg"), accuracy);
+            rows.FirstOrDefault(r => r.TestAcc >= 0.5)?.Step ?? last * 0.15,
+            spanish ? "memorizando" : "memorization");
+        File.WriteAllText(Path.Combine(directory, $"grokking-cliff{suffix}.svg"), accuracy);
 
         // 2. What is happening underneath: the loss on the answer, log scale.
         static double Log10(double v) => Math.Log10(Math.Max(v, 1e-4));
         string loss = Chart(
-            "The train loss falls first; the unseen loss waits for the rule",
-            "training step",
-            "cross-entropy loss on the answer (log scale)",
+            spanish ? "La pérdida de entrenamiento baja antes; la de las sumas no vistas espera a la regla" : "The training loss falls first; the unseen loss waits for the rule",
+            xLabel,
+            spanish ? "pérdida en la respuesta (escala logarítmica)" : "cross-entropy loss on the answer (log scale)",
             last, Log10(0.01), Log10(10.0),
             [Log10(0.01), Log10(0.1), Log10(1.0), Log10(10.0)],
             v => { double value = Math.Pow(10.0, v); return value >= 1.0 ? F(value, 0) : F(value, 2); },
             [
-                new Series { Label = "train", Color = "#2563eb", Points = rows.Select(r => (r.Step, Log10(r.TrainLoss))).ToList() },
-                new Series { Label = "unseen", Color = "#dc2626", Points = rows.Select(r => (r.Step, Log10(r.TestLoss))).ToList() },
+                new Series { Label = spanish ? "entrenamiento" : "training", Color = "#2563eb", Points = rows.Select(r => (r.Step, Log10(r.TrainLoss))).ToList() },
+                new Series { Label = spanish ? "no vistas" : "unseen", Color = "#dc2626", Points = rows.Select(r => (r.Step, Log10(r.TestLoss))).ToList() },
             ],
             null,
             null);
-        File.WriteAllText(Path.Combine(directory, "grokking-loss.svg"), loss);
+        File.WriteAllText(Path.Combine(directory, $"grokking-loss{suffix}.svg"), loss);
 
-        // 3. The pressure: the size of the parameters and the unseen accuracy,
+        // 3. The pressure: the size of the numbers and the unseen accuracy,
         //    each on its own axis.
         double maxSize = rows.Max(r => r.ParamSize) * 1.15;
         string size = Chart(
-            "Weight decay shrinks the parameters as the pattern appears",
-            "training step",
-            "size of the parameters",
+            spanish ? "El decaimiento encoge los números cuando aparece la regla" : "Weight decay shrinks the numbers as the rule appears",
+            xLabel,
+            spanish ? "tamaño de los números" : "size of the numbers",
             last, 0.0, maxSize,
             [0.0, maxSize * 0.25, maxSize * 0.5, maxSize * 0.75, maxSize],
             v => F(v, 1),
             [
-                new Series { Label = "parameter size", Color = "#2563eb", Points = rows.Select(r => (r.Step, r.ParamSize)).ToList() },
-                new Series { Label = "unseen accuracy", Color = "#dc2626", Points = rows.Select(r => (r.Step, r.TestAcc)).ToList(), Axis = 1 },
+                new Series { Label = spanish ? "tamaño" : "size of the numbers", Color = "#2563eb", Points = rows.Select(r => (r.Step, r.ParamSize)).ToList() },
+                new Series { Label = spanish ? "acierto" : "unseen accuracy", Color = "#dc2626", Points = rows.Select(r => (r.Step, r.TestAcc)).ToList(), Axis = 1 },
             ],
             new RightAxis
             {
-                Label = "accuracy on unseen pairs",
+                Label = spanish ? "acierto en sumas no vistas" : "accuracy on unseen sums",
                 Min = 0.0,
                 Max = 1.0,
                 Ticks = [0.0, 0.25, 0.5, 0.75, 1.0],
                 Color = "#dc2626",
             },
             null);
-        File.WriteAllText(Path.Combine(directory, "grokking-norm.svg"), size);
+        File.WriteAllText(Path.Combine(directory, $"grokking-norm{suffix}.svg"), size);
     }
 
     /// <summary>
@@ -209,7 +219,8 @@ public static class Plot
         Func<double, string> yFormat,
         List<Series> series,
         RightAxis? right,
-        double? shadeUntil)
+        double? shadeUntil,
+        string shadeLabel = "memorization")
     {
         const double width = 900.0, height = 460.0;
         double marginRight = right is null ? 150.0 : 232.0;
@@ -235,7 +246,7 @@ public static class Plot
             // for 100%, and in the middle of the band it landed next to the line for 50%.
             double labelX = Sx(until / 2.0);
             double labelY = (Sy(yTicks[^1]) + Sy(yTicks[^2])) / 2.0;
-            svg.Append($"<text x=\"{F(labelX, 1)}\" y=\"{F(labelY + 4.0, 1)}\" font-size=\"12\" fill=\"{TextColor}\" text-anchor=\"middle\">memorization</text>\n");
+            svg.Append($"<text x=\"{F(labelX, 1)}\" y=\"{F(labelY + 4.0, 1)}\" font-size=\"12\" fill=\"{TextColor}\" text-anchor=\"middle\">{shadeLabel}</text>\n");
         }
 
         foreach (double tick in yTicks)

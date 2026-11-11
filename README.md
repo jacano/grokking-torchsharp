@@ -72,7 +72,7 @@ using var optimiser = optim.Adam(model.parameters(), lr: lr, beta1: 0.85, beta2:
 
 ## The result
 
-![Train and unseen accuracy against the training step. Train accuracy reaches 93% by step 1000 while unseen accuracy is at 32%. Unseen accuracy climbs to 94% at step 3000, 99% at step 5000, and stays at 100% from step 7500 to the end.](figures/grokking-cliff.svg)
+![Accuracy on training and unseen sums against the training step. Training accuracy reaches 93% by step 1000 while unseen accuracy is at 32%. Unseen accuracy climbs to 94% at step 3000, 99% at step 5000, and stays at 100% from step 7500 to the end.](figures/grokking-cliff.svg)
 
 | step | train acc | unseen acc | parameter size |
 | ---: | ---: | ---: | ---: |
@@ -90,7 +90,7 @@ for another 2,000 steps. At the end it answers **all 1,966 pairs it never saw**.
 
 ![Cross-entropy loss on the answer, on a log scale. The train loss falls to 0.1 by step 2000 while the unseen loss stays above 2.0 until step 3000, then falls to 0.13.](figures/grokking-loss.svg)
 
-![Two curves against the training step, each on its own axis. On the left axis the size of the parameters falls from 18.9 to 8.8 in 250 steps, climbs to 11.0 while the model memorizes, then settles at 9.3. On the right axis the unseen accuracy rises from 1.8% to 100%.](figures/grokking-norm.svg)
+![Two curves against the training step, each on its own axis. On the left axis the size of the numbers falls from 18.9 to 8.8 in 250 steps, climbs to 11.0 while the model memorizes, then settles at 9.3. On the right axis the unseen accuracy rises from 1.8% to 100%.](figures/grokking-norm.svg)
 
 The figure carries two axes, one per curve. The blue line is the size of the
 parameters on the left axis. The red line is the accuracy on unseen pairs on the

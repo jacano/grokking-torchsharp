@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" font-family="ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial,sans-serif">
+<rect width="900" height="460" fill="#ffffff"/>
+<text x="78" y="26" font-size="17" font-weight="600" fill="#64748b">Acierto en sumas de entrenamiento y en sumas no vistas</text>
+<rect x="78.0" y="46.0" width="58.8" height="362.0" fill="#f1f5f9" opacity="0.85"/>
+<text x="107.4" y="109.2" font-size="12" fill="#64748b" text-anchor="middle">memorizando</text>
+<line x1="78.0" y1="401.2" x2="750.0" y2="401.2" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="405.7" font-size="13" fill="#64748b" text-anchor="end">0%</text>
+<line x1="78.0" y1="316.7" x2="750.0" y2="316.7" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="321.2" font-size="13" fill="#64748b" text-anchor="end">25%</text>
+<line x1="78.0" y1="232.1" x2="750.0" y2="232.1" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="236.6" font-size="13" fill="#64748b" text-anchor="end">50%</text>
+<line x1="78.0" y1="147.5" x2="750.0" y2="147.5" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="152.0" font-size="13" fill="#64748b" text-anchor="end">75%</text>
+<line x1="78.0" y1="62.9" x2="750.0" y2="62.9" stroke="#e2e8f0" stroke-width="1"/>
+<text x="68.0" y="67.4" font-size="13" fill="#64748b" text-anchor="end">100%</text>
+<line x1="78.0" y1="46.0" x2="78.0" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78.0" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">0</text>
+<line x1="212.4" y1="46.0" x2="212.4" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="212.4" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">4000</text>
+<line x1="346.8" y1="46.0" x2="346.8" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="346.8" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">8000</text>
+<line x1="481.2" y1="46.0" x2="481.2" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="481.2" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">12000</text>
+<line x1="615.6" y1="46.0" x2="615.6" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="615.6" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">16000</text>
+<line x1="750.0" y1="46.0" x2="750.0" y2="408.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="750.0" y="428.0" font-size="13" fill="#64748b" text-anchor="middle">20000</text>
+<line x1="78.0" y1="408.0" x2="750.0" y2="408.0" stroke="#94a3b8" stroke-width="1.5"/>
+<line x1="78.0" y1="46.0" x2="78.0" y2="408.0" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="414.0" y="448.0" font-size="13" fill="#64748b" text-anchor="middle">paso de entrenamiento</text>
+<text x="18" y="227.0" font-size="13" fill="#64748b" transform="rotate(-90 18 227.0)" text-anchor="middle">acierto exacto</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" points="78.0,393.3 86.4,312.0 94.8,218.2 103.2,151.5 111.6,87.4 120.0,84.1 128.4,136.3 136.8,77.5 145.2,66.9 153.6,72.2 162.0,66.9 170.4,63.6 178.8,70.8 187.2,62.9 195.6,64.2 204.0,63.6 212.4,63.6 220.8,62.9 229.2,65.6 237.6,64.2 246.0,63.6 254.4,62.9 262.8,63.6 271.2,63.6 279.6,62.9 288.0,62.9 296.4,62.9 304.8,62.9 313.2,62.9 321.6,62.9 330.0,62.9 338.4,62.9 346.8,62.9 355.2,63.6 363.6,62.9 372.0,62.9 380.4,62.9 388.8,62.9 397.2,62.9 405.6,62.9 414.0,62.9 422.4,62.9 430.8,62.9 439.2,62.9 447.6,62.9 456.0,63.6 464.4,62.9 472.8,62.9 481.2,62.9 489.6,62.9 498.0,62.9 506.4,62.9 514.8,62.9 523.2,62.9 531.6,62.9 540.0,62.9 548.4,62.9 556.8,62.9 565.2,62.9 573.6,62.9 582.0,71.5 590.4,62.9 598.8,62.9 607.2,62.9 615.6,62.9 624.0,62.9 632.4,62.9 640.8,62.9 649.2,62.9 657.6,62.9 666.0,62.9 674.4,62.9 682.8,62.9 691.2,62.9 699.6,62.9 708.0,62.9 716.4,62.9 724.8,62.9 733.2,62.9 741.6,62.9 750.0,62.9"/>
+<line x1="766.0" y1="60.0" x2="790.0" y2="60.0" stroke="#2563eb" stroke-width="2.6"/>
+<text x="796.0" y="64.5" font-size="13" fill="#64748b">entrenamiento</text>
+<polyline fill="none" stroke="#dc2626" stroke-width="2.6" stroke-linejoin="round" points="78.0,395.0 86.4,383.0 94.8,352.5 103.2,329.1 111.6,291.6 120.0,263.4 128.4,270.8 136.8,220.9 145.2,184.6 153.6,167.9 162.0,137.8 170.4,72.6 178.8,84.3 187.2,67.4 195.6,70.5 204.0,68.6 212.4,69.5 220.8,67.4 229.2,76.3 237.6,68.1 246.0,66.5 254.4,67.7 262.8,68.6 271.2,67.2 279.6,63.4 288.0,63.1 296.4,62.9 304.8,62.9 313.2,62.9 321.6,62.9 330.0,62.9 338.4,63.1 346.8,62.9 355.2,64.8 363.6,62.9 372.0,62.9 380.4,62.9 388.8,62.9 397.2,62.9 405.6,62.9 414.0,62.9 422.4,62.9 430.8,62.9 439.2,62.9 447.6,62.9 456.0,64.3 464.4,63.4 472.8,62.9 481.2,62.9 489.6,62.9 498.0,62.9 506.4,62.9 514.8,62.9 523.2,62.9 531.6,62.9 540.0,62.9 548.4,62.9 556.8,62.9 565.2,62.9 573.6,62.9 582.0,71.7 590.4,62.9 598.8,62.9 607.2,62.9 615.6,62.9 624.0,62.9 632.4,62.9 640.8,62.9 649.2,62.9 657.6,62.9 666.0,63.4 674.4,62.9 682.8,62.9 691.2,62.9 699.6,62.9 708.0,62.9 716.4,62.9 724.8,62.9 733.2,62.9 741.6,62.9 750.0,62.9"/>
+<line x1="766.0" y1="80.0" x2="790.0" y2="80.0" stroke="#dc2626" stroke-width="2.6"/>
+<text x="796.0" y="84.5" font-size="13" fill="#64748b">no vistas</text>
+</svg>

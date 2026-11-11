@@ -178,6 +178,8 @@ internal static class Program
 
         csv.Dispose();
         Plot.WriteFigures(CsvPath, FigDir);
+        // The same charts with Spanish labels, for the Spanish article.
+        Plot.WriteFigures(CsvPath, FigDir, spanish: true);
         Console.WriteLine($"wrote the figures to {FigDir}/");
 
         foreach ((long a, long b) in new[] { (12L, 35L), (7L, 44L), (50L, 50L), (0L, 13L) })
