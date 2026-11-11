@@ -4,24 +4,23 @@ This repository is the companion code for the article
 **[Grokking: the jump from memory to rule](https://jacano.github.io/blog/grokking-from-memory-to-rule/)**.
 
 It trains a small transformer on one arithmetic task and shows the moment when the
-model stops memorizing and starts generalizing. The experiment is 329 lines in total:
-the task, the model, the training loop and the figures. TorchSharp carries the
-automatic differentiation, so the model is 55 lines and the training loop is 12, and
-both are in `src/Program.cs`. A full run takes 26 seconds on one core.
+model stops memorizing and starts generalizing. The experiment is two C# files: the
+task, the model, the training loop and the figures. TorchSharp carries the automatic
+differentiation, so the model is one class and the training loop is a handful of lines.
 
 | Property | Value |
 | --- | ---: |
-| model and training | **55 + 12 lines** |
+| runtime | .NET 11 |
 | dependencies | TorchSharp + libtorch |
-| a full run | **26 seconds** |
-| result | 97.3% of the unseen pairs |
+| a full run | **about 90 seconds** |
+| result | **100% of the 1,966 unseen pairs** |
 
 ## The library
 
 **[TorchSharp](https://github.com/dotnet/TorchSharp)** 0.107, the .NET binding of
 PyTorch, with the native build of libtorch 2.10 as the NuGet package
-`libtorch-cpu`. There is no C++ compiler in the loop: the native library arrives as
-a package.
+`libtorch-cpu`. There is no C++ compiler in the loop: the native library arrives as a
+package.
 
 It is the only serious candidate in .NET for this. `Microsoft.ML.TorchSharp` is a
 wrapper for specific NLP scenarios and does not expose a general layer API;
@@ -37,8 +36,7 @@ public override Tensor forward(Tensor index)
 {
     long batch = index.shape[0];
     long length = index.shape[1];
-    Tensor positions = arange(length, dtype: ScalarType.Int64, device: index.device);
-    Tensor x = _wte.forward(index) + _wpe.forward(positions); // [B, T, C]
+    Tensor x = _wte.forward(index);                             // [B, T, C]
 
     // --- attention: the framework knows how to do this, and how to mask it ---
     Tensor h = RmsNorm(x);
@@ -53,6 +51,10 @@ public override Tensor forward(Tensor index)
     return _lmHead.forward(x); // [B, T, vocab]
 }
 ```
+
+There is no positional embedding. The token already says which operand it is (`a`
+comes before `+`, `b` comes after it), and addition is symmetric, so a second table
+that tells the two slots apart adds parameters and nothing else.
 
 The three lines that replace the whole backward pass:
 
@@ -70,54 +72,58 @@ using var optimiser = optim.Adam(model.parameters(), lr: lr, beta1: 0.85, beta2:
 
 ## The result
 
-![Train and unseen accuracy against the training step. Train accuracy reaches 98% by step 1000 while unseen accuracy is at 1.2%. Unseen accuracy rises from 13% at step 3000 to 74% at step 3750 and reaches 97% by step 5000.](figures/grokking-cliff.svg)
+![Train and unseen accuracy against the training step. Train accuracy reaches 93% by step 1000 while unseen accuracy is at 32%. Unseen accuracy climbs to 94% at step 3000, 99% at step 5000, and stays at 100% from step 7500 to the end.](figures/grokking-cliff.svg)
 
 | step | train acc | unseen acc | parameter size |
 | ---: | ---: | ---: | ---: |
-| 0 | 0.8% | 1.1% | 19.1 |
-| 1,000 | 98.4% | 1.2% | 21.5 |
-| 3,000 | 98.6% | 13.3% | 19.7 |
-| 3,500 | 93.8% | 28.0% | 20.2 |
-| 3,750 | 99.8% | 74.4% | 18.1 |
-| 4,000 | 99.6% | 82.2% | 17.0 |
-| 5,000 | 100% | 92.3% | 16.5 |
-| 12,000 | 100% | **97.3%** | 16.0 |
+| 0 | 2.3% | 1.8% | 18.9 |
+| 1,000 | 92.8% | 32.4% | 11.0 |
+| 2,000 | 98.8% | 64.0% | 10.7 |
+| 3,000 | 97.7% | 93.7% | 10.1 |
+| 4,000 | 99.8% | 98.1% | 9.7 |
+| 5,000 | 99.8% | 98.9% | 9.6 |
+| 7,500 | 100% | 100% | 9.5 |
+| 20,000 | 100% | **100%** | 9.3 |
 
-The model memorizes the train set by step 1,000, and the unseen accuracy then sits
-between 1% and 28% for another 2,500 steps. It jumps to 74% at step 3,750. At the
-end the model answers **1,912 of the 1,966 unseen pairs**.
+The model memorizes the train set by step 1,000, and the unseen accuracy then climbs
+for another 2,000 steps. At the end it answers **all 1,966 pairs it never saw**.
 
-![Cross-entropy loss on a log scale. The train loss reaches its floor by step 1000 while the test loss stays flat at 3.9, then falls to 2.0 while the unseen accuracy jumps.](figures/grokking-loss.svg)
+![Cross-entropy loss on the answer, on a log scale. The train loss falls to 0.1 by step 2000 while the unseen loss stays above 2.0 until step 3000, then falls to 0.13.](figures/grokking-loss.svg)
 
-![Two curves against the training step, each on its own axis. On the left axis the size of the parameters rises from 19.1 to 21.5 while the model memorizes, then falls to 16.0. On the right axis the accuracy on unseen pairs stays near 1% and then rises to 97%.](figures/grokking-norm.svg)
+![Two curves against the training step, each on its own axis. On the left axis the size of the parameters falls from 18.9 to 8.8 in 250 steps, climbs to 11.0 while the model memorizes, then settles at 9.3. On the right axis the unseen accuracy rises from 1.8% to 100%.](figures/grokking-norm.svg)
 
 The figure carries two axes, one per curve. The blue line is the size of the
 parameters on the left axis. The red line is the accuracy on unseen pairs on the
-right axis. The size tells the story: it grows while the model stores 843 answers, and it falls
-while the table becomes the expensive option.
+right axis. The size falls at once, because the decay charges for every parameter
+from the first step; it climbs while the model stores 843 answers, and it falls
+again as the rule takes over.
 
 ## The control
 
-Set the decay to zero and the jump never arrives. The same program, with `--wd 0`:
+Set the decay to zero and the run never gets there. The same program, with `--wd 0`:
 
 | step | decay | train acc | unseen acc | size |
 | ---: | :--- | ---: | ---: | ---: |
-| 12,000 | with | 100% | **97.3%** | 16.0 |
-| 12,000 | without | 100% | **0.2%** | 157.1 |
-| 60,000 | without | 100% | **0.5%** | 348.2 |
+| 2,000 | with | 98.8% | 64.0% | 10.7 |
+| 2,000 | without | 100% | 30.6% | 36.2 |
+| 4,000 | with | 99.8% | 98.1% | 9.7 |
+| 4,000 | without | 100% | 30.6% | 41.0 |
+| 12,000 | with | 100% | 100% | 9.4 |
+| 12,000 | without | 100% | 30.8% | 53.0 |
+| 20,000 | without | 100% | **30.9%** | 61.2 |
+
+Without the decay the model memorizes every training pair and answers 30.9% of the
+unseen ones. More steps do not change it: the accuracy stays at 30.6–30.9% from step
+2,000, and the size of the parameters climbs to 61 because nothing in the run charges
+for it.
 
 ```bash
 dotnet run -c Release -- --wd 0
 ```
 
-The model memorizes every training pair either way. Without the decay the unseen
-accuracy is **below the 1.9% of guessing**, and it stays there: five times the
-steps, 60,000 of them, move it from 0.2% to 0.5%. The size of the parameters climbs
-to 348, more than twenty times the size of the model that learned the rule.
-
 ## Reproduce it
 
-You need the .NET SDK 10 or newer. The first build downloads libtorch, which is a
+You need the .NET SDK 11 or newer. The first build downloads libtorch, which is a
 few hundred megabytes.
 
 ```bash
@@ -126,41 +132,45 @@ cd grokking-torchsharp
 make run
 ```
 
-`make` on its own compiles and checks the formatting. On a machine without `make`, every target is one `dotnet` line: `dotnet run -c Release` for `make run`, `dotnet run -c Release -- --wd 0` for `make control`. `make help` prints the list:
+`make` on its own compiles and runs the style check; it does not train. `make` does not
+ship with Windows, and every target has a `dotnet` form for that case: `dotnet run -c
+Release` where the target says `make run`.
 
-| command | what it does |
-| --- | --- |
-| `make run` | the full run: 12,000 steps, about half a minute |
-| `make control` | the same run with the decay at zero, which never learns the rule |
-| `make save` | train and keep the model in `model.pt` |
-| `make infer PAIR=12+35` | ask the saved model |
-| `make explain PAIR=12+35` | draw every answer it considered for one sum |
-| `make validate` | compile and check the style: what you run before a push |
-| `make publish MESSAGE="what changed"` | validate, commit and push |
-| `make clean` | remove the build output |
-
-Every flag goes through `ARGS`:
-
-```bash
-make run ARGS="--p 13 --steps 3000"              # a smaller modulus learns faster
-make run ARGS="--steps 40000 --eval-every 100"   # longer run, finer log
-make run ARGS="--lr 0.0025"                      # a slower optimiser
-```
-
-`make control` writes over the artifacts of `make run`, so it puts the committed ones
-back when it finishes. The log is the result, and the table of the two runs is above.
-
-The whole run takes about half a minute. It writes three things:
+The run takes about 90 seconds and writes three things:
 
 | Where | What |
 | --- | --- |
-| `data/train.txt`, `data/test.txt` | the two splits of the dataset, one pair per line |
+| `data/train.txt`, `data/test.txt` | the two splits, one pair per line: 843 lines and 1,966 lines |
 | `runs/grokking.csv` | the logged numbers of every step |
-| `figures/` | the three figures of this article |
+| `figures/` | the figures in this article |
+
+Each row of `runs/grokking.csv` has six columns:
+
+| Column | Meaning |
+| --- | --- |
+| `step` | training step |
+| `train_loss` | cross-entropy on the answer over 512 training pairs |
+| `train_acc` | exact match on those pairs |
+| `test_loss` | cross-entropy on the answer over all 1,966 unseen pairs |
+| `test_acc` | exact match on the unseen pairs |
+| `param_norm` | L2 norm of all 56,320 parameters: the square root of the sum of their squares |
+
+The repository has a `Makefile` with one target per action. `make help` lists them,
+and the two worth knowing here are:
+
+| command | what it does |
+| --- | --- |
+| `make control` | the same run with the decay at zero, which never learns the rule |
+| `make run ARGS="--p 13 --steps 3000"` | another modulus, or another number of steps |
+
+The defaults are `lr = 0.003`, `wd = 0.005`, 20,000 steps, and the last 2,000 steps
+take the learning rate to zero (`--anneal 2000`), so the run settles instead of ending
+on an oscillation. A slower seed needs more steps: the same model reaches 100% with
+`--steps 44000 --anneal 4000`.
 
 ## Inference
 
-`model.pt` is **not part of the repository**. `make save` writes it at the end of a run
+`model.pt` is **not** part of the repository. `make save` writes it at the end of a run
 and `make infer` reads it back. This is one line in each direction, because a framework
 keeps the whole state dictionary for you:
 
@@ -170,15 +180,13 @@ make infer PAIR=12+35
 ```
 
 ```
-inference 12+35 = 47  [ok]  top: 47 (90%), 6 (5%), 17 (3%)
-inference 7+44 = 51  [ok]  top: 51 (95%), 28 (2%), 39 (2%)
-inference 50+50 = 5  [wrong]  top: 5 (74%), 17 (10%), 47 (7%)
-inference 0+13 = 13  [ok]  top: 13 (96%), 1 (2%), 43 (0%)
+inference 12+35 = 47  [ok]  top: 47 (89%), 21 (2%), 52 (2%)
+inference 7+44 = 51  [ok]  top: 51 (90%), 20 (3%), 50 (1%)
+inference 50+50 = 47  [ok]  top: 47 (86%), 52 (4%), 29 (2%)
+inference 0+13 = 13  [ok]  top: 13 (90%), 36 (2%), 8 (1%)
 ```
 
-One of the four is wrong, and that is the honest number: the model answers 97.3% of
-the unseen pairs, so roughly one pair in forty fails. `50 + 50` is one of the 1,966
-pairs the model never saw.
+All four are unseen pairs.
 
 ## What the model is thinking
 
@@ -188,12 +196,8 @@ PAIR=12+35` writes the 53 probabilities the saved model gives to one sum
 
 | the saved model | chance it gives to the right answer, 47 |
 | --- | ---: |
-| after 1,000 steps, when it has memorized | 0.3% |
-| after 12,000 steps, when it has the rule | **89.8%** |
-
-The first model is not undecided. It is sure of another answer, at 40%, which is why the
-unseen accuracy sits **below** the 1.9% of guessing in the control below: a model that
-memorized is confidently wrong about everything it did not store.
+| after 1,000 steps, when it has memorized | 26.7% |
+| after 20,000 steps, when it has the rule | **89.4%** |
 
 `make explain NOTE="after 1,000 steps"` puts your own words in the title, which is how
 the two rows above were drawn.
@@ -202,16 +206,22 @@ the two rows above were drawn.
 
 The framework removes the arithmetic, not the decisions. You still choose the
 architecture, the split, the number of steps, the learning rate and the weight
-decay, and the run still has to be tuned. Two of the things this repository had to
+decay, and the run still has to be tuned. Three of the things this repository had to
 get right:
 
 - **The initialisation.** A framework starts an embedding at `N(0, 1)` and a linear
   layer in a uniform range. The article uses microgpt's `N(0, 0.08)`, so this file
-  sets it in four lines. Measured by the size of the parameters, the run then starts at 19.1 instead of 69.6.
+  sets it in four lines. Measured by the size of the parameters, the run then starts at 18.9 instead of 69.6.
 - **The decay is not the same decay.** `AdamW` subtracts the decay from the weight
   outside the update, and `Adam` adds it to the gradient, as microgpt does. With
   `AdamW` this run never jumped, at any decay from 0.002 to 0.5; the parameter norm
-  settled at 40 to 50 and the model stayed on the memorizing answer. With `Adam` and the decay inside the gradient, **`wd = 0.0012` works**, and the norm settles at 16. Two names for the same word, two different
+  settled at 40 to 50 and the model stayed on the memorizing answer. With `Adam` and the decay inside the gradient, **`wd = 0.005` works**, and the norm settles at 9.3. Two names for the same word, two different
   runs.
+- **The schedule.** The run reaches 100% and then oscillates around it. The last
+  2,000 steps take the learning rate to zero, so it ends on the solution instead of
+  on a dip.
 
-The framework also brings its own random numbers, so the seed decides the initial weights and the split of the pairs. Change the seed and you get a different run of the same experiment: the jump moves, and the rule arrives just the same.
+The framework also brings its own random numbers, so the seed decides the initial
+weights and the split of the pairs. Change the seed and you get a different run of
+the same experiment: the jump moves, and the rule arrives just the same. The run in
+this repository is seed 42.

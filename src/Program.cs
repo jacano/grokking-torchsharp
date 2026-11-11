@@ -5,11 +5,16 @@
 //   dotnet run -c Release -- --infer 12+35      # ask the saved model
 //   dotnet run -c Release -- --explain 12+35    # draw the 53 answers it considered
 //
-// The task is modular addition, the model is a transformer of 56,640 parameters, and
+// The task is modular addition, the model is a transformer of 56,320 parameters, and
 // the whole experiment is this file. TorchSharp carries the autograd, the layers and
 // the optimizer, so what is left here is WHAT the model is and HOW it is trained.
 //
-// A full run takes about half a minute, and the article that goes with it is at
+// The model is the article's: one layer, 64 dimensions, 8 heads, no biases, RMSNorm.
+// It has no positional embedding: the token already says which operand it is, and
+// addition is symmetric, so the task does not need a second table that tells the two
+// slots apart.
+//
+// A full run takes about 90 seconds, and the article that goes with it is at
 // https://jacano.github.io/blog/grokking-from-memory-to-rule/
 
 using TorchSharp;
@@ -28,13 +33,13 @@ internal static class Program
     private const double TrainFrac = 0.3; // 30% of the pairs train the model
     private const int NEmbd = 64;         // width of the vector at each position
     private const int NHead = 8;          // attention heads, run in parallel
-    private const int Block = 16;         // longest document the model accepts
     private const int Batch = 128;        // pairs read per training step
-    private const double Lr = 0.01;       // learning rate
-    private const double Wd = 0.0012;     // weight decay. Small on purpose: it is what picks the rule over the table.
+    private const double Lr = 0.003;      // learning rate
+    private const double Wd = 0.005;      // weight decay. It is what picks the rule over the table.
     private const int EvalTrain = 512;    // training pairs used for the logged train loss
     private const int EvalBatch = 512;    // documents per evaluation chunk
-    private const int Steps = 12000;      // training steps
+    private const int Steps = 20000;      // training steps
+    private const int Anneal = 2000;      // the last N steps take the learning rate to zero
     private const int EvalEvery = 250;    // one logged row every N steps
     private const int Seed = 42;
 
@@ -62,6 +67,7 @@ internal static class Program
         string explain = Value(args, "explain", "");
         string note = Value(args, "note", "");
         bool save = Has(args, "save");
+        int anneal = (int)Number(args, "anneal", Anneal);
 
         torch.manual_seed(seed); // the framework brings its own random numbers
         var started = DateTime.UtcNow;
@@ -77,7 +83,7 @@ internal static class Program
             $"task: modular addition mod {p} | {p * p} pairs | train {trainPairs.Count} | test {testPairs.Count} | raw copies in {DataDir}/");
 
         // ---- the model ---------------------------------------------------
-        var model = new TinyGpt(Vocab, NEmbd, NHead, Block);
+        var model = new TinyGpt(Vocab, NEmbd, NHead);
         // The framework brings its own default initialisation: N(0,1) for an
         // embedding, a uniform range for a linear layer. The article uses the one
         // from microgpt, so that the run starts from the scale the article measures.
@@ -85,7 +91,7 @@ internal static class Program
             foreach ((string _, Parameter parameter) in model.named_parameters())
                 parameter.normal_(0, 0.08);
         long nParams = model.parameters().Sum(parameter => parameter.numel());
-        Console.WriteLine($"model: {nParams} params | embd {NEmbd} | layers 1 | heads {NHead} | context {Block}");
+        Console.WriteLine($"model: {nParams} params | embd {NEmbd} | layers 1 | heads {NHead}");
 
         // ---- inference only ----------------------------------------------
         if (infer.Length > 0)
@@ -142,6 +148,12 @@ internal static class Program
 
         for (int step = 0; step < steps; step++)
         {
+            // The last steps take the learning rate to zero, so the run settles on
+            // the solution it found instead of ending on a bad oscillation.
+            if (anneal > 0 && step >= steps - anneal)
+                foreach (var group in optimiser.ParamGroups)
+                    group.LearningRate = lr * (steps - step) / (double)anneal;
+
             using var scope = torch.NewDisposeScope();
             int start = (int)((long)step * Batch % trainPairs.Count);
             Tensor index = order.narrow(0, start, Math.Min(Batch, trainPairs.Count - start));
@@ -220,7 +232,14 @@ internal static class Program
         File.WriteAllText(path, text + "\n");
     }
 
-    /// <summary>Mean loss over the five positions, and exact match on the answer.</summary>
+    /// <summary>
+    /// Accuracy on the answer position and the cross-entropy of that one prediction.
+    ///
+    /// The loss is read at the answer, not over the whole document: two of the other
+    /// positions cannot be predicted at all (the first operand comes before anything,
+    /// and the second comes after a '+'), and averaging them in hides the number that
+    /// the run is about.
+    /// </summary>
     private static (double Loss, double Acc) Evaluate(torch.nn.Module<Tensor, Tensor> model, Tensor docs, torch.nn.Module<Tensor, Tensor, Tensor> lossFn, int count)
     {
         double totalLoss = 0;
@@ -233,10 +252,10 @@ internal static class Program
             Tensor inputs = batch.narrow(1, 0, 5);
             Tensor targets = batch.narrow(1, 1, 5);
             Tensor logits = model.forward(inputs);
-            totalLoss += lossFn.forward(logits.reshape(-1, Vocab), targets.reshape(-1)).item<float>() * size;
-            Tensor predicted = logits.argmax(-1).narrow(1, AnswerPos, 1).squeeze(1);
-            Tensor wanted = targets.narrow(1, AnswerPos, 1).squeeze(1);
-            hits += predicted.eq(wanted).sum().item<long>();
+            Tensor answerLogits = logits.narrow(1, AnswerPos, 1).squeeze(1);
+            Tensor answerTargets = targets.narrow(1, AnswerPos, 1).squeeze(1);
+            totalLoss += lossFn.forward(answerLogits, answerTargets).item<float>() * size;
+            hits += answerLogits.argmax(-1).eq(answerTargets).sum().item<long>();
         }
         return (totalLoss / count, hits / (double)count);
     }
@@ -344,7 +363,6 @@ internal static class Program
 internal sealed class TinyGpt : torch.nn.Module<Tensor, Tensor>
 {
     private readonly Embedding _wte;
-    private readonly Embedding _wpe;
     private readonly Linear _wq;
     private readonly Linear _wk;
     private readonly Linear _wv;
@@ -356,14 +374,13 @@ internal sealed class TinyGpt : torch.nn.Module<Tensor, Tensor>
     private readonly int _headDim;
     private readonly int _heads;
 
-    public TinyGpt(int vocab, int embd, int heads, int block)
+    public TinyGpt(int vocab, int embd, int heads)
         : base(nameof(TinyGpt))
     {
         _embd = embd;
         _heads = heads;
         _headDim = embd / heads;
         _wte = torch.nn.Embedding(vocab, embd);
-        _wpe = torch.nn.Embedding(block, embd);
         _wq = torch.nn.Linear(embd, embd, hasBias: false);
         _wk = torch.nn.Linear(embd, embd, hasBias: false);
         _wv = torch.nn.Linear(embd, embd, hasBias: false);
@@ -378,8 +395,7 @@ internal sealed class TinyGpt : torch.nn.Module<Tensor, Tensor>
     {
         long batch = index.shape[0];
         long length = index.shape[1];
-        Tensor positions = arange(length, dtype: ScalarType.Int64, device: index.device);
-        Tensor x = _wte.forward(index) + _wpe.forward(positions); // [B, T, C]
+        Tensor x = _wte.forward(index); // [B, T, C]
 
         // --- attention: the framework knows how to do this, and how to mask it ---
         Tensor h = RmsNorm(x);

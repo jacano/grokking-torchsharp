@@ -69,7 +69,7 @@ public static class Plot
         Directory.CreateDirectory(directory);
         double last = rows[^1].Step;
 
-        // 1. The cliff: accuracy on train and on unseen pairs.
+        // 1. The cliff: accuracy on the training pairs and on the unseen pairs.
         string accuracy = Chart(
             "Generalization happens after memorization",
             "training step",
@@ -85,15 +85,15 @@ public static class Plot
             rows.FirstOrDefault(r => r.TestAcc >= 0.5)?.Step ?? last * 0.15);
         File.WriteAllText(Path.Combine(directory, "grokking-cliff.svg"), accuracy);
 
-        // 2. What is happening underneath: losses, log scale.
+        // 2. What is happening underneath: the loss on the answer, log scale.
         static double Log10(double v) => Math.Log10(Math.Max(v, 1e-4));
         string loss = Chart(
-            "The train loss reaches zero while the test loss stays flat",
+            "The train loss falls first; the unseen loss waits for the rule",
             "training step",
-            "cross-entropy loss (log scale)",
+            "cross-entropy loss on the answer (log scale)",
             last, Log10(0.01), Log10(10.0),
-            [0.01, 0.1, 1.0, 10.0],
-            v => v >= 1.0 ? F(v, 0) : F(v, 2),
+            [Log10(0.01), Log10(0.1), Log10(1.0), Log10(10.0)],
+            v => { double value = Math.Pow(10.0, v); return value >= 1.0 ? F(value, 0) : F(value, 2); },
             [
                 new Series { Label = "train", Color = "#2563eb", Points = rows.Select(r => (r.Step, Log10(r.TrainLoss))).ToList() },
                 new Series { Label = "unseen", Color = "#dc2626", Points = rows.Select(r => (r.Step, Log10(r.TestLoss))).ToList() },
@@ -158,6 +158,8 @@ public static class Plot
 
         StringBuilder svg = new();
         svg.Append($"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{F(width, 0)}\" height=\"{F(height, 0)}\" viewBox=\"0 0 {F(width, 0)} {F(height, 0)}\" font-family=\"ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial,sans-serif\">\n");
+        // A white card behind the chart, so the figure reads the same on a dark page.
+        svg.Append($"<rect width=\"{F(width, 0)}\" height=\"{F(height, 0)}\" fill=\"#ffffff\"/>\n");
         svg.Append($"<text x=\"{F(marginLeft, 0)}\" y=\"26\" font-size=\"17\" font-weight=\"600\" fill=\"{TextColor}\">{title}</text>\n");
 
         foreach (double tick in new[] { 0.0, 0.25, 0.5, 0.75, 1.0 })
@@ -222,6 +224,7 @@ public static class Plot
 
         StringBuilder svg = new();
         svg.Append("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"900\" height=\"460\" viewBox=\"0 0 900 460\" font-family=\"ui-sans-serif,system-ui,Segoe UI,Helvetica,Arial,sans-serif\">\n");
+        svg.Append("<rect width=\"900\" height=\"460\" fill=\"#ffffff\"/>\n");
         svg.Append($"<text x=\"{F(marginLeft, 0)}\" y=\"26\" font-size=\"17\" font-weight=\"600\" fill=\"{TextColor}\">{title}</text>\n");
 
         if (shadeUntil is { } until)
